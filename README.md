@@ -197,3 +197,6 @@ Summary
 > Final cost:          0.118115450004724618 ETH
 ```
 
+## Access via LINE
+The LINE Messenger API allows us to receive URLs via LINE.
+![image](https://github.com/Finschia/flutter-bird/assets/55307968/b4f6ac13-f167-4090-b4c2-0e4294845608)
