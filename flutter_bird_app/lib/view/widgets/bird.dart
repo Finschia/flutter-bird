@@ -1,5 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-
 import '../../model/skin.dart';
 
 class Bird extends StatelessWidget {
@@ -24,17 +25,56 @@ class Bird extends StatelessWidget {
       return _buildLoadingIndicator(context, 0.3);
     }
 
-    return Image.network(
-      skin!.imageLocation!,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return _buildLoadingIndicator(
-            context, loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1000));
-      },
+    try {
+      final imageDataUrl = _extractImageDataUrl(skin!.imageLocation!);
+      return Image.memory(
+        _dataUrlToBytes(imageDataUrl),
+        errorBuilder: (context, error, stackTrace) {
+          print('Error loading image: $error');
+          return _buildErrorWidget(context);
+        },
+      );
+    } catch (e) {
+      print('Error processing image data: $e');
+      return _buildErrorWidget(context);
+    }
+  }
+
+  Uint8List _dataUrlToBytes(String dataUrl) {
+    final base64Str = dataUrl.split(',').last;
+    return base64Decode(base64Str);
+  }
+
+  String _extractImageDataUrl(String tokenUri) {
+    try {
+      final jsonStr = tokenUri.replaceFirst('data:application/json,', '');
+      print('jsonStr:${jsonStr}');
+      String decodedStr = Uri.decodeFull(jsonStr);
+      print('decodedStr:${decodedStr}');
+      Map<String, dynamic> jsonData = jsonDecode(decodedStr);
+      print('jsonData:${jsonData}');
+      if (jsonData.containsKey('image')) {
+        return jsonData['image'] as String;
+      } else {
+        throw FormatException('Invalid JSON structure or missing image field');
+      }
+    } catch (e) {
+      print('Error extracting image data URL: $e');
+      print("tokenUri: ${tokenUri}, ${e}");
+      rethrow;
+    }
+  }
+
+  Widget _buildErrorWidget(BuildContext context) {
+    return Container(
+      color: Colors.grey[300],
+      child: Center(
+        child: Icon(Icons.error, color: Colors.red),
+      ),
     );
   }
 
-  _buildLoadingIndicator(BuildContext context, double? value) => Column(
+  Widget _buildLoadingIndicator(BuildContext context, double? value) => Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           CircularProgressIndicator(

@@ -145,7 +145,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
           requiredNamespaces: {
             'eip155': RequiredNamespace(
               chains: ['eip155:$operatingChain'],
-              methods: ['personal_sign'],
+              methods: ['personal_sign', 'eth_sendTransaction'],
               events: [],
             ),
           },
@@ -196,6 +196,33 @@ class AuthenticationServiceImpl implements AuthenticationService {
           reason: Errors.getSdkError(Errors.USER_DISCONNECTED),
         );
       }
+    }
+  }
+
+  Future<String?> sendTransaction({
+    required String topic,
+    required int chainId,
+    required Map<String, String> txParams,
+  }) async {
+    try {
+      final dynamic txHash = await _connector!.request(
+        topic: topic,
+        chainId: 'eip155:$chainId',
+        request: SessionRequestParams(
+          method: 'eth_sendTransaction',
+          params: [txParams],
+        ),
+      );
+
+      if (txHash is String) {
+        return txHash;
+      } else {
+        print('Unexpected response type: ${txHash.runtimeType}');
+        return null;
+      }
+    } catch (e) {
+      print('Error sending transaction: $e');
+      return null;
     }
   }
 

@@ -197,6 +197,71 @@ Summary
 > Final cost:          0.118115450004724618 ETH
 ```
 
+### Generate and Mint full onchain bird
+- You can generate random bird images using a script.
+- Using the deployed contract, you can base64 encode the generated bird image and set it as the tokenURI to mint it as a full onchain NFT.
+
+- Create bird
+  - You can start the server to get or generate images.
+  - If the target tokenId exists, it will be retrieved; if not, it will be generated.
+```
+% cd flutter_bird_image_server
+% npm run start
+% curl -o image.png http://localhost:3000/image/:tokenId
+```
+
+- Mint full onchain bird
+  - We recommend minting from Flutter Birds, but you can also mint it manually.
+  - The generated image is used to mint NFTs.
+  - Please run it in the environment where you deployed the contract.
+  - Please change the filePath of toenInfo in `mint_random_skin.js` as appropriate.
+  - Please execute the following in your docker environment.
+
+```
+# node scripts/mint_full_onchain_bird/mint_random_skin.js
+Minting a random Flutter Bird Skin on contract: 0xBa29cfe58943Ee7830663C31029ef73f65B1D470
+data:application/json,{"name":"Flutter Bird - 358","description":"NFT Flutter Bird","attributes":[{"trait_type":"File size","value":"17,510 bytes"}],"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAu4AAALuCAYAAADxHZPKAAAABmJLR0QA/wD/AP+gvaeTAAAgAElEQVR4nO3dW4xsWXkf8G/VnDMzppuLLWMD4WI5sjkTkBwFCytyZJLYGWGEIkRAAhmJEGEpD4mSOHFirOAHiPEFIhNFQnF4QLIQ..."}
+chunk count: 1
+appendUri tx: [object Object]
+Minting successful
+Token ID of new Skin: 358
+0xbfd1a547a6dc6d332e5dc23530992c550719c8db3e39ef3454d8cb24c05617be
+```
+
+- Transfer nft
+ - transfer_nft.js `recipientAddress` `tokenId`
+
+```
+# node scripts/transfer_nft.js 0xde7c30d8548b1b38856aa3ae2bf02c536ab60f1e 66
+Sender address: 0x492ca3c9594B17b65494F910A9a33Fa66f3141ed
+Recipient address: 0xde7c30d8548b1b38856aa3ae2bf02c536ab60f1e
+Token ID: 66
+NFT (Token ID: 66) successfully transferred
+Transaction Hash: 0x5a2c95a0a19e7621f21f058fcc712d92a0850ea5cc0983444d3904c1d72b5025
+```
+
+- Check the minted NFT using truffle.
+  - Please execute the following in your docker environment.
+  - You can open the NFT image by pasting `data:image/png;base64, xxxxxxx` from the image field of the uri into the search box of your browser.
+```
+// If you are deploying to the testnet, set the network to baobab.
+# truffle console --network baobab
+truffle(baobab)> let instance = await FlutterBirdSkins.deployed()
+undefined
+truffle(baobab)> ownerAddress="0x244d85991c825ad2672111ed73e089fbd39e357d"
+'0x244d85991c825ad2672111ed73e089fbd39e357d'
+truffle(baobab)> let tokens = await instance.getTokensForOwner(ownerAddress)
+undefined
+truffle(baobab)> console.log(tokens.map(token => token.toString()))
+[ '358' ]
+truffle(baobab)> let uri = await instance.tokenURI(358)
+undefined
+truffle(baobab)> console.log(uri)
+data:application/json,{"name":"Flutter Bird - 358","description":"NFT Flutter Bird","attributes":[{"trait_type":"File size","value":"10,029 bytes"}],"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAu4AAALuCAYAAADxHZPKAAAABmJLR0QA/wD/AP+gvaeTAAAgAElEQVR4nO3dW4xsWXkf8G/VnDMzppuLLWMD4WI5sjkTkBwFCytyZJLYGWGEIkRAAhmJEGEpD4mSOHFirOAHiPEFIhNFQnF4QLIQ..."}
+```
+
+
+
 ## Access via LINE
 The LINE Messenger API allows us to receive URLs via LINE.
 
