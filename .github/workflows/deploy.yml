@@ -21,21 +21,21 @@ jobs:
         with:
           flutter-version: '3.22.2'
 
-      - name: make .env
+      - name: Make .env
         working-directory: flutter_bird_app
         run: |
           touch .env
           echo WALLET_CONNECT_PROJECT_ID=${{secrets.WALLET_CONNECT_PROJECT_ID}} >> .env
 
-      - name: show version
+      - name: Show version
         working-directory: flutter_bird_app
         run: flutter --version
 
-      - name: pub get
+      - name: Install packages
         working-directory: flutter_bird_app
         run: flutter pub get
 
-      - name: build
+      - name: Build
         working-directory: flutter_bird_app
         run: flutter build web
 
