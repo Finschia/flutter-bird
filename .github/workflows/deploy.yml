@@ -21,11 +21,11 @@ jobs:
         with:
           flutter-version: '3.22.2'
 
-      - name: Make .env
+      - name: Make env
         working-directory: flutter_bird_app
         run: |
-          touch .env
-          echo WALLET_CONNECT_PROJECT_ID=${{secrets.WALLET_CONNECT_PROJECT_ID}} >> .env
+          touch env
+          echo WALLET_CONNECT_PROJECT_ID=${{secrets.WALLET_CONNECT_PROJECT_ID}} >> env
 
       - name: Show version
         working-directory: flutter_bird_app
@@ -37,7 +37,10 @@ jobs:
 
       - name: Build
         working-directory: flutter_bird_app
-        run: flutter build web
+        run: |
+          flutter build web
+          mkdir -p build/web/assets
+          cp env build/web/assets
 
       - name: Set GitHub Deployment Environment
         id: github_deployment_environment
