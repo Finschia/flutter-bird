@@ -8,6 +8,9 @@ import 'package:provider/provider.dart';
 
 import '../controller/flutter_bird_controller.dart';
 import '../controller/persistence/persistence_service.dart';
+import '../controller/authentication_service.dart';
+import '../controller/mint_nft_service.dart';
+import '../config.dart';
 import '../extensions.dart';
 import 'game_view.dart';
 import 'widgets/background.dart';
@@ -26,6 +29,7 @@ class MainMenuView extends StatefulWidget {
 
 class _MainMenuViewState extends State<MainMenuView> with AutomaticKeepAliveClientMixin {
   bool playing = false;
+  bool _isOverlayVisible = false;
 
   int lastScore = 0;
   int? highScore;
@@ -101,12 +105,14 @@ class _MainMenuViewState extends State<MainMenuView> with AutomaticKeepAliveClie
                 const Background(),
                 _buildBirdSelector(web3Service),
                 _buildMenu(web3Service),
+                _buildAuthenticationView(web3Service),
+                if (_isOverlayVisible) _buildOverlayMenu(web3Service),
               ]),
             ),
           );
         }),
       );
-    } catch(e, stackTrace) {
+    } catch (e, stackTrace) {
       print("Error in MainMenuView: $e");
       print("StackTrace: $stackTrace");
       return Scaffold(
@@ -115,7 +121,6 @@ class _MainMenuViewState extends State<MainMenuView> with AutomaticKeepAliveClie
         ),
       );
     }
-
   }
 
   Widget _buildMenu(FlutterBirdController web3Service) => Column(
@@ -156,7 +161,7 @@ class _MainMenuViewState extends State<MainMenuView> with AutomaticKeepAliveClie
               )),
           Expanded(
             flex: 1,
-            child: _buildAuthenticationView(web3Service),
+            child: SizedBox(),
           )
         ],
       );
@@ -263,66 +268,108 @@ class _MainMenuViewState extends State<MainMenuView> with AutomaticKeepAliveClie
         ],
       );
 
-  _buildAuthenticationView(FlutterBirdController web3Service) {
-    String statusText = 'No Wallet\nConnected';
-    if (web3Service.isAuthenticated) {
-      statusText = web3Service.isOnOperatingChain ? 'Wallet Connected' : 'Wallet on wrong chain';
-    }
-
-    return SafeArea(
+  Widget _buildAuthenticationView(FlutterBirdController web3Service) {
+    return Positioned(
+      bottom: 20,
+      right: 32,
       child: GestureDetector(
-        onTap: _showAuthenticationPopUp,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              bottom: 20,
-              left: 32,
-              child: Row(
-                children: [
-                  Container(
-                    height: 64,
-                    width: 64,
-                    decoration:
-                        BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.white, boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(2, 2),
-                      )
-                    ]),
-                    child: Center(
-                      child:
-                          kIsWeb ? Image.network('images/walletconnect.png') : Image.asset('images/walletconnect.png'),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        statusText,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      if (web3Service.isAuthenticated)
-                        Text(
-                          web3Service.currentAddressShort ?? '',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white),
-                        )
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ],
+        onTap: _toggleOverlay,
+        child: Container(
+          height: 64,
+          width: 64,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                offset: Offset(2, 2),
+              )
+            ],
+          ),
+          child: const Icon(Icons.menu, color: Colors.black),
         ),
       ),
     );
+  }
+
+  void _toggleOverlay() {
+    setState(() {
+      _isOverlayVisible = !_isOverlayVisible;
+    });
+  }
+
+  Widget _buildOverlayMenu(FlutterBirdController web3Service) {
+    if (!_isOverlayVisible) return const SizedBox.shrink();
+
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: _toggleOverlay,
+        child: Container(
+          color: Colors.black54,
+          child: Center(
+            child: Container(
+              width: 300,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildWalletConnectButton(web3Service),
+                  const SizedBox(height: 16),
+                  _buildMintButton(web3Service),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWalletConnectButton(FlutterBirdController web3Service) {
+    String statusText = web3Service.isAuthenticated
+        ? (web3Service.isOnOperatingChain ? 'Wallet Connected' : 'Wrong Chain')
+        : 'Connect Wallet';
+
+    return ElevatedButton(
+      onPressed: _showAuthenticationPopUp,
+      child: Text(statusText),
+    );
+  }
+
+  Widget _buildMintButton(FlutterBirdController web3Service) {
+    return ElevatedButton(
+      onPressed: web3Service.isAuthenticated && web3Service.isOnOperatingChain
+          ? () => _mintNFT(web3Service)
+          : null,
+      child: const Text('Mint Bird'),
+    );
+  }
+
+  Future<void> _mintNFT(FlutterBirdController web3Service) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Minting process started. Please check your wallet for confirmation.')),
+      );
+
+      int newTokenId = await web3Service.nftMinterService.mintRandomSkin();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('NFT #$newTokenId minted successfully!')),
+      );
+
+      await web3Service.authorizeUser(forceReload: true);
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error minting NFT: $e')),
+      );
+    }
   }
 
   _showAuthenticationPopUp() {

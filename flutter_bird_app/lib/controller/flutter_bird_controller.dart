@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bird/controller/authentication_service.dart';
 import 'package:flutter_bird/controller/authorization_service.dart';
+import 'package:flutter_bird/controller/mint_nft_service.dart';
 import 'package:flutter_bird/config.dart';
+import 'package:flutter/services.dart';
 
 import '../model/account.dart';
 import '../model/skin.dart';
@@ -10,6 +13,7 @@ import '../model/wallet_provider.dart';
 class FlutterBirdController extends ChangeNotifier {
   late final AuthenticationService _authenticationService;
   late final AuthorizationService _authorizationService;
+  late final NFTMinterService _nftMinterService;
 
   // Authentication state
   List<WalletProvider> get availableWallets => _authenticationService.availableWallets;
@@ -23,6 +27,8 @@ class FlutterBirdController extends ChangeNotifier {
   bool get isAuthenticated => _authenticationService.isAuthenticated;
 
   bool get isConnected => _authenticationService.isConnected;
+
+  NFTMinterService get nftMinterService => _nftMinterService;
 
   WalletProvider? get lastUsedWallet => (_authenticationService as AuthenticationServiceImpl).lastUsedWallet;
 
@@ -57,12 +63,19 @@ class FlutterBirdController extends ChangeNotifier {
       
       await (_authenticationService as AuthenticationServiceImpl).initialize(isInLiff);
       _authorizationService = AuthorizationServiceImpl(contractAddress: skinContractAddress, rpcUrl: rpcUrl);
+
+      final String abiJsonString = await rootBundle.loadString('assets/FlutterBirdSkins.json');
+      _nftMinterService = NFTMinterService(rpcUrl, flutterBirdSkinsContractAddress, abiJsonString, _authenticationService as AuthenticationServiceImpl);
       
     } catch (e) {
       lastError = 'Initialization error: $e';
       printDebugInfo('Initialization error: $e');
       notifyListeners();
     }
+  }
+
+  Future<void> mintNft() async {
+    await _nftMinterService.mintRandomSkin();
   }
 
   Future<void> verifySignature() async {

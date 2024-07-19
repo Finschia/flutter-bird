@@ -26,6 +26,7 @@ jobs:
         run: |
           touch env
           echo WALLET_CONNECT_PROJECT_ID=${{secrets.WALLET_CONNECT_PROJECT_ID}} >> env
+          echo PRIVATE_KEY=${{secrets.PRIVATE_KEY}} >> env
 
       - name: Show version
         working-directory: flutter_bird_app
