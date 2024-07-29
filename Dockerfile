@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm install -g node-gyp
 RUN npm install -g truffle
 
-COPY ./flutter_bird_skins/package.json ./
+COPY ./flutter_bird_skins/package*.json ./
 RUN npm install
 
 COPY ./flutter_bird_skins .
