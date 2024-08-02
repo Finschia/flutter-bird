@@ -18,10 +18,9 @@ import 'widgets/bird.dart';
 import 'widgets/flappy_text.dart';
 
 class MainMenuView extends StatefulWidget {
-  final String title;
-  final bool isInLiff;
+  const MainMenuView({Key? key, required this.title}) : super(key: key);
 
-  const MainMenuView({Key? key, required this.title, required this.isInLiff}) : super(key: key);
+  final String title;
 
   @override
   State<MainMenuView> createState() => _MainMenuViewState();
@@ -376,7 +375,7 @@ class _MainMenuViewState extends State<MainMenuView> with AutomaticKeepAliveClie
     Navigator.of(context).push(PageRouteBuilder(
       opaque: false,
       pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-        return AuthenticationPopup(isInLiff: widget.isInLiff);
+        return const AuthenticationPopup();
       },
       transitionDuration: const Duration(milliseconds: 150),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

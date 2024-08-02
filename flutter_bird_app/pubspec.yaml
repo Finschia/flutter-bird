@@ -23,7 +23,6 @@ dependencies:
   provider: 6.0.3
   qr_flutter: 4.1.0
   http: 1.2.0
-  flutter_line_liff: ^0.0.3
 
 dev_dependencies:
   flutter_launcher_icons: 0.13.1

@@ -16,7 +16,7 @@ import '../model/wallet_provider.dart';
 
 /// Manages the authentication process and communication with crypto wallets
 abstract class AuthenticationService {
-  Future<void> initialize(bool isInLiff);
+  Future<void> initialize();
 
   List<WalletProvider> get availableWallets;
 
@@ -38,7 +38,6 @@ abstract class AuthenticationService {
 }
 
 class AuthenticationServiceImpl implements AuthenticationService {
-  final bool isInLiff;
   final int operatingChain;
   final Function() onAuthStatusChanged;
   WalletProvider? _lastUsedWallet;
@@ -46,7 +45,6 @@ class AuthenticationServiceImpl implements AuthenticationService {
   String projectId = dotenv.env['WALLET_CONNECT_PROJECT_ID'] ?? '';
 
   AuthenticationServiceImpl({
-    required this.isInLiff,
     required this.operatingChain,
     required this.onAuthStatusChanged,
   });
@@ -83,19 +81,14 @@ class AuthenticationServiceImpl implements AuthenticationService {
   int? get currentChain => int.tryParse(currentSession?.namespaces['eip155']?.accounts.first.split(':')[1] ?? '');
 
   @override
-  Future<void> initialize(bool isInLiff) async {
+  Future<void> initialize() async {
     if (_isInitialized) {
       return;
     }
     
     await _createConnector();
     await _clearSessions();
-
-    if (!kIsWeb || isInLiff) {
-      await _loadWallets();
-    } else {
-      print('AuthenticationServiceImpl: Skipping wallet loading for Web');
-    }
+    await _loadWallets();
     
     _isInitialized = true;
   }
@@ -154,11 +147,9 @@ class AuthenticationServiceImpl implements AuthenticationService {
         Uri? uri = resp.uri;
         if (uri != null) {
           // Web
-          if (kIsWeb && !isInLiff) {
+          if (kIsWeb) {
             webQrData = uri.toString();
             onAuthStatusChanged();
-          // LIFF
-          } else if(kIsWeb && isInLiff) {
             _launchWallet(wallet: walletProvider, uri: uri.toString());
           // Native
           } else {
@@ -174,8 +165,6 @@ class AuthenticationServiceImpl implements AuthenticationService {
     }
   }
 
-  // Since the LIFF browser does not automatically transition to the wallet
-  // after connecting to the wallet, execute verifySignature() directly.
   Future<bool> verifySignature() async {
     if (currentChain == null || !isOnOperatingChain) return false;
 
@@ -233,16 +222,8 @@ class AuthenticationServiceImpl implements AuthenticationService {
   Future<bool> _verifySignature({WalletProvider? walletProvider, String? address}) async {
     if (address == null || currentChain == null || !isOnOperatingChain) return false;
 
-    // Native
-    if (!kIsWeb) {
-      await Future.delayed(const Duration(seconds: 1));
-      _launchWallet(wallet: walletProvider, uri: 'wc:${currentSession!.topic}@2?relay-protocol=irn&symKey=${currentSession!.relay.protocol}');
-      // LIFF	
-    } else if(isInLiff) {	
-      await Future.delayed(const Duration(seconds: 1));	
-      _launchWallet(wallet: walletProvider, uri: 'wc:${currentSession!.topic}@2?relay-protocol=irn&symKey=${currentSession!.relay.protocol}');
-    }
-    
+    await Future.delayed(const Duration(seconds: 1));	
+    _launchWallet(wallet: walletProvider, uri: 'wc:${currentSession!.topic}@2?relay-protocol=irn&symKey=${currentSession!.relay.protocol}');
 
     String nonce = Nonce.generate(32, math.Random.secure());
     String messageText = 'Please sign this message to authenticate with Flutter Bird.\nChallenge: $nonce';
@@ -293,14 +274,12 @@ class AuthenticationServiceImpl implements AuthenticationService {
       );
 
       _connector?.onSessionConnect.subscribe((SessionConnect? session) async {
-        if (!isInLiff) {
-          log('connected: ' + session.toString(), name: 'AuthenticationService');
-          String? address = session?.session.namespaces['eip155']?.accounts.first.split(':').last;
-          webQrData = null;
-          final authenticated = await _verifySignature(walletProvider: walletProvider, address: address);
-          if (authenticated) log('authenticated successfully: ' + session.toString(), name: 'AuthenticationService');
-          onAuthStatusChanged();
-        }
+        log('connected: ' + session.toString(), name: 'AuthenticationService');
+        String? address = session?.session.namespaces['eip155']?.accounts.first.split(':').last;
+        webQrData = null;
+        final authenticated = await _verifySignature(walletProvider: walletProvider, address: address);
+        if (authenticated) log('authenticated successfully: ' + session.toString(), name: 'AuthenticationService');
+        onAuthStatusChanged();
       });
       _connector?.onSessionUpdate.subscribe((SessionUpdate? payload) async {
         log('session_update: ' + payload.toString(), name: 'AuthenticationService');

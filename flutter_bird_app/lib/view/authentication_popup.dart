@@ -7,8 +7,7 @@ import '../controller/flutter_bird_controller.dart';
 import '../model/wallet_provider.dart';
 
 class AuthenticationPopup extends StatefulWidget {
-  final bool isInLiff;
-  const AuthenticationPopup({Key? key, required this.isInLiff}) : super(key: key);
+  const AuthenticationPopup({Key? key}) : super(key: key);
 
   @override
   State<AuthenticationPopup> createState() => _AuthenticationPopupState();
@@ -115,16 +114,10 @@ class _AuthenticationPopupState extends State<AuthenticationPopup> {
       children: [
         _buildAuthenticationStatusView(flutterBirdController),
         if (!flutterBirdController.isConnected)
-          if (!kIsWeb && !widget.isInLiff)
-            Flexible(
+          Flexible(
               child: _buildWalletSelector(flutterBirdController),
             ),
-        if (!flutterBirdController.isConnected)
-          if (kIsWeb && widget.isInLiff)
-            Flexible(
-              child: _buildWalletSelector(flutterBirdController),
-            ),
-        if (flutterBirdController.webQrData != null && kIsWeb && !widget.isInLiff)
+        if (flutterBirdController.webQrData != null && kIsWeb)
           _buildQRView(flutterBirdController.webQrData!)
       ],
     );

@@ -47,21 +47,20 @@ class FlutterBirdController extends ChangeNotifier {
   // Error handling
   String? lastError;
 
-  Future<void> init(bool isInLiff) async {
+  Future<void> init() async {
     try {
       // Setting Up Web3 Connection
       const String skinContractAddress = flutterBirdSkinsContractAddress;
       String rpcUrl = klaytnBaobabProviderUrl;
 
       _authenticationService = AuthenticationServiceImpl(
-          isInLiff: isInLiff,
           operatingChain: chainId,
           onAuthStatusChanged: () async {
             notifyListeners();
             authorizeUser();
           });
       
-      await (_authenticationService as AuthenticationServiceImpl).initialize(isInLiff);
+      await (_authenticationService as AuthenticationServiceImpl).initialize();
       _authorizationService = AuthorizationServiceImpl(contractAddress: skinContractAddress, rpcUrl: rpcUrl);
 
       final String abiJsonString = await rootBundle.loadString('assets/FlutterBirdSkins.json');
