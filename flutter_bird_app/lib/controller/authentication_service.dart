@@ -116,6 +116,23 @@ class AuthenticationServiceImpl implements AuthenticationService {
           }
         }).where((wallet) => wallet != null).cast<WalletProvider>().toList();
 
+        final miniWalletProvider = WalletProvider(
+            id: '',
+            name: 'Mini Wallet',
+            imageId: '',
+            imageUrl: ImageUrls(
+                sm: 'https://walletconnect-app-demo.vercel.app/wallet.png',
+                md: 'https://walletconnect-app-demo.vercel.app/wallet.png',
+                lg: 'https://walletconnect-app-demo.vercel.app/wallet.png'),
+            chains: ['eip155:1'],
+            versions: [],
+            sdks: [],
+            appUrls: AppUrls(),
+            mobile: MobileInfo(
+                native: null,
+                universal: 'https://liff.line.me/2005811776-v1GJy55G'),
+            desktop: DesktopInfo());
+        _availableWallets.insert(0, miniWalletProvider);
       } else {
         throw Exception('Failed to load wallets: ${response.statusCode}');
       }
