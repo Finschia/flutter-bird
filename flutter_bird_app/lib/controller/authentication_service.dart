@@ -306,14 +306,14 @@ class AuthenticationServiceImpl implements AuthenticationService {
       return;
     }
 
-    if (wallet.mobile.universal != null && await canLaunchUrl(Uri.parse(wallet.mobile.universal!))) {
+    if (wallet.mobile.native != null) {
+      await launchUrl(
+        _convertToWcUri(appLink: wallet.mobile.native!, wcUri: uri),
+      );
+    } else if (wallet.mobile.universal != null && await canLaunchUrl(Uri.parse(wallet.mobile.universal!))) {
       await launchUrl(
         _convertToWcUri(appLink: wallet.mobile.universal!, wcUri: uri),
         mode: LaunchMode.externalApplication,
-      );
-    } else if (wallet.mobile.native != null && await canLaunchUrl(Uri.parse(wallet.mobile.native!))) {
-      await launchUrl(
-        _convertToWcUri(appLink: wallet.mobile.native!, wcUri: uri),
       );
     } else {
       if (Platform.isIOS && wallet.appUrls.ios != null) {
