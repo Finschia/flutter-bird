@@ -302,7 +302,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
     required String uri,
   }) async {
     if (wallet == null) {
-      launchUrl(Uri.parse(uri));
+      print('Error: Wallet is null');
       return;
     }
 
