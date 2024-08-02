@@ -328,6 +328,10 @@ class AuthenticationServiceImpl implements AuthenticationService {
   Uri _convertToWcUri({
     required String appLink,
     required String wcUri,
-  }) =>
-      Uri.parse('$appLink/wc?uri=${Uri.encodeComponent(wcUri)}');
+  }) {
+    if (appLink[appLink.length - 1] == '/') {
+      appLink = appLink.substring(0, appLink.length - 1);
+    }
+    return Uri.parse('$appLink/wc?uri=${Uri.encodeComponent(wcUri)}');
+  }
 }
