@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:html' as html;
 
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/foundation.dart';
@@ -320,6 +321,12 @@ class AuthenticationServiceImpl implements AuthenticationService {
   }) async {
     if (wallet == null) {
       print('Error: Wallet is null');
+      return;
+    }
+
+    final isLine = Uri.parse(html.window.location.href).queryParameters['is_line'] != null;
+    if (wallet.name == 'Mini Wallet' && isLine) {
+      html.window.parent?.postMessage({'type': 'display_uri', 'data': uri}, "*", []);
       return;
     }
 
