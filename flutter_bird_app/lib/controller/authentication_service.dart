@@ -353,6 +353,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
     required String appLink,
     required String wcUri,
   }) {
+    // avoid generating invalid link like 'metamask:///wc?..', 'https://metamask.app.link//wc?...'
     if (appLink[appLink.length - 1] == '/') {
       appLink = appLink.substring(0, appLink.length - 1);
     }
