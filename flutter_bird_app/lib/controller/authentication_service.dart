@@ -324,6 +324,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
       return;
     }
 
+    // This process is for Mini Wallet. Mini Wallet Browser gives link of this app a 'is_line' variable, so app can detect opening this in Mini Wallet.
     final isLine = Uri.parse(html.window.location.href).queryParameters['is_line'] != null;
     if (wallet.name == 'Mini Wallet' && isLine) {
       html.window.parent?.postMessage({'type': 'display_uri', 'data': uri}, "*", []);
