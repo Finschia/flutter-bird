@@ -1,3 +1,5 @@
+import 'dart:html' as html;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,8 +9,7 @@ import '../controller/flutter_bird_controller.dart';
 import '../model/wallet_provider.dart';
 
 class AuthenticationPopup extends StatefulWidget {
-  final bool isInLiff;
-  const AuthenticationPopup({Key? key, required this.isInLiff}) : super(key: key);
+  const AuthenticationPopup({Key? key}) : super(key: key);
 
   @override
   State<AuthenticationPopup> createState() => _AuthenticationPopupState();
@@ -27,6 +28,13 @@ class _AuthenticationPopupState extends State<AuthenticationPopup> {
     setState(() {
       errorMessage = message;
     });
+  }
+
+  bool _isMobileWeb() {
+    final userAgent = html.window.navigator.userAgent.toLowerCase();
+    return userAgent.contains('mobile') ||
+        userAgent.contains('android') ||
+        userAgent.contains('ios');
   }
 
   @override
@@ -114,17 +122,11 @@ class _AuthenticationPopupState extends State<AuthenticationPopup> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildAuthenticationStatusView(flutterBirdController),
-        if (!flutterBirdController.isConnected)
-          if (!kIsWeb && !widget.isInLiff)
-            Flexible(
+        if (!flutterBirdController.isConnected && _isMobileWeb())
+          Flexible(
               child: _buildWalletSelector(flutterBirdController),
             ),
-        if (!flutterBirdController.isConnected)
-          if (kIsWeb && widget.isInLiff)
-            Flexible(
-              child: _buildWalletSelector(flutterBirdController),
-            ),
-        if (flutterBirdController.webQrData != null && kIsWeb && !widget.isInLiff)
+        if (flutterBirdController.webQrData != null && !_isMobileWeb())
           _buildQRView(flutterBirdController.webQrData!)
       ],
     );

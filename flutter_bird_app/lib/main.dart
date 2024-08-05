@@ -4,7 +4,6 @@ import 'package:flutter_bird/controller/flutter_bird_controller.dart';
 import 'package:flutter_bird/view/main_menu_view.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_line_liff/flutter_line_liff.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,20 +16,17 @@ void main() async {
     print("Stack trace: $stackTrace");
   }
 
-  final bool isInClient = FlutterLineLiff().isInClient;
-  runApp(MyApp(isInClient: isInClient));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool isInClient;
-
-  const MyApp({Key? key, required this.isInClient}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (BuildContext context) {
-        return FlutterBirdController()..init(isInClient);
+        return FlutterBirdController()..init();
       },
       child: MaterialApp(
         title: 'Flutter Bird',
@@ -41,7 +37,6 @@ class MyApp extends StatelessWidget {
           builder: (context) {
             return MainMenuView(
               title: 'Flutter Bird',
-              isInLiff: isInClient,
             );
           },
         ),
