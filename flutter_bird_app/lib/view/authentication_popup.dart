@@ -1,3 +1,5 @@
+import 'dart:html' as html;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +28,13 @@ class _AuthenticationPopupState extends State<AuthenticationPopup> {
     setState(() {
       errorMessage = message;
     });
+  }
+
+  bool _isMobileWeb() {
+    final userAgent = html.window.navigator.userAgent.toLowerCase();
+    return userAgent.contains('mobile') ||
+        userAgent.contains('android') ||
+        userAgent.contains('ios');
   }
 
   @override
@@ -113,11 +122,11 @@ class _AuthenticationPopupState extends State<AuthenticationPopup> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildAuthenticationStatusView(flutterBirdController),
-        if (!flutterBirdController.isConnected)
+        if (!flutterBirdController.isConnected && _isMobileWeb())
           Flexible(
               child: _buildWalletSelector(flutterBirdController),
             ),
-        if (flutterBirdController.webQrData != null && kIsWeb)
+        if (flutterBirdController.webQrData != null && !_isMobileWeb())
           _buildQRView(flutterBirdController.webQrData!)
       ],
     );
